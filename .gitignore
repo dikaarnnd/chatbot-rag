@@ -1,0 +1,33 @@
+# --- Python ---
+backend/venv
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# --- Env / secrets ---
+backend/.env
+
+# --- Experiment tracking ---
+mlruns/
+mlartifacts/
+
+# --- Frontend (Next.js) ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# --- Backend ---
+backend/app/eval
+backend/scripts
+backend/debug_search.py
+backend/ingestion/debug_chunking.py
+
+# --- Sample PDF ---
+data/*.pdf
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/

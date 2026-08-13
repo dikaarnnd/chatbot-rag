@@ -1,1 +1,3 @@
 # chatbot-rag
+
+sebelum pake

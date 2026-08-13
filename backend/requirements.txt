@@ -1,0 +1,46 @@
+# =========================================================
+# Chatbot RAG — backend/requirements.txt
+# Python 3.11 | pip + venv | CPU-only (no CUDA)
+#
+# PENTING: install torch DULU secara terpisah sebelum file ini,
+# supaya dapat wheel CPU-only (bukan CUDA build yang default):
+#
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+#
+# Baru setelah itu:
+#
+#   pip install -r requirements.txt
+# =========================================================
+
+# --- Web framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic-settings==2.7.1
+
+# --- Orchestration (RAG) ---
+llama-index-core==0.12.10 # Document, SentenceSplitter, BaseNode
+
+# --- PDF parsing ---
+pypdf
+
+# --- Embedding backend (Qwen3-Embedding-0.6B) ---
+sentence-transformers==3.3.1
+transformers==4.51.3
+
+# --- Database (Supabase: Postgres + pgvector) ---
+sqlmodel
+pgvector
+psycopg2-binary
+
+# --- LLM Generation ---
+google-genai
+
+# --- Evaluasi & experiment tracking ---
+ragas==0.4.3
+mlflow==2.19.0
+rapidfuzz
+tiktoken
+
+# --- Utilities ---
+python-dotenv==1.0.1
