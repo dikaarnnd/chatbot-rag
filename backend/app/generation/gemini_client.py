@@ -1,12 +1,3 @@
-"""Gemini API client for Chatbot RAG generation (non-streaming, Fase 3).
-
-Menggantikan generation/claude_client.py -- lihat DECISIONS.md untuk alasan
-migrasi Claude API -> Gemini API. Panggil `google-genai` SDK langsung (pola
-sama seperti keputusan awal: kontrol penuh, bukan lewat wrapper LlamaIndex),
-pakai Interactions API (client.interactions.create) -- pola resmi terbaru
-per dokumentasi ai.google.dev, menggantikan generate_content() versi lama.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -19,12 +10,12 @@ from google.genai import errors
 
 from app.generation.prompt import SYSTEM_PROMPT
 
-load_dotenv()  # baca backend/.env kalau ada; aman/no-op kalau tidak ada
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "gemini-3.6-flash"
-DEFAULT_MAX_OUTPUT_TOKENS = 8192
+DEFAULT_MAX_OUTPUT_TOKENS = 4096
 
 
 class GenerationError(Exception):

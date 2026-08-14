@@ -22,8 +22,7 @@ def chunk_documents(
     Semua halaman digabung dulu jadi 1 teks kontinu sebelum di-chunk, supaya
     chunk_overlap benar-benar menjembatani apa yang dulunya batas halaman.
     page_label tiap chunk ditentukan lewat pemetaan posisi karakter awal
-    chunk terhadap peta offset->halaman (bukan diwariskan langsung dari
-    Document sumber seperti versi lama).
+    chunk terhadap peta offset->halaman
 
     Args:
         documents: Output dari `load_pdf()` -- satu Document per halaman.

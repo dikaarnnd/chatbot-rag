@@ -1,15 +1,3 @@
-"""Prompt assembly for Chatbot RAG generation.
-
-Berdasarkan draft template di DECISIONS.md (Fase 3, status: belum final).
-Instruksi anti-halusinasi dipisah ke system prompt (bukan digabung jadi satu
-blok string seperti draft asli) -- lihat catatan keputusan terkait.
-
-Modul ini TIDAK menangani kasus "tidak ada chunk relevan" (chunks kosong) --
-itu tanggung jawab generation/pipeline.py, yang harus short-circuit return
-NO_CONTEXT_MESSAGE tanpa panggil Claude API sama sekali kalau retrieval
-kosong.
-"""
-
 from __future__ import annotations
 
 from app.retrieval.search import RetrievedChunk
@@ -40,14 +28,6 @@ SYSTEM_PROMPT = (
     "pertanyaan ini tampaknya beda topik dari percakapan sebelumnya, tapi jangan "
     "menebak atau mengarang jawaban hanya supaya terlihat membantu."
 )
-
-# Dipakai generation/pipeline.py saat retrieval tidak menemukan chunk relevan
-# sama sekali -- fallback tanpa perlu panggil Claude API.
-NO_CONTEXT_MESSAGE = (
-    "Maaf, saya tidak menemukan informasi yang relevan dengan pertanyaan Anda "
-    "di dalam dokumen ini."
-)
-
 
 def format_context(chunks: list[RetrievedChunk]) -> str:
     """Format retrieved chunks jadi blok teks dengan sitasi halaman per potongan.

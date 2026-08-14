@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   SidebarTrigger,
   useSidebar,
+  SidebarProvider,
 } from "@/components/ui/sidebar";
 import { PanelLeftOpen } from "lucide-react";
 
@@ -13,22 +14,23 @@ import ChatPanel from "@/components/ChatPanel";
 import type { IngestResponse } from "@/lib/api";
 
 function DesktopOpenTrigger() {
-  const { open, toggleSidebar } = useSidebar();
+  const { open } = useSidebar();
 
-  if (open) return null;
+  if (open) {
+    return null;
+  }
 
   return (
-    <button
-      type="button"
-      onClick={toggleSidebar}
-      className="hidden md:flex fixed top-3 left-3 z-40 p-2 rounded-md hover:bg-(--color-muted) text-(--color-ink) transition-colors border border-(--color-paper-line)"
-      title="Buka Sidebar"
+    <SidebarTrigger
+      className="fixed left-3 top-3 z-40 hidden border border-(--color-paper-line) bg-(--color-background) text-(--color-ink) shadow-sm transition-colors hover:bg-(--color-muted) md:flex"
       aria-label="Buka Sidebar"
+      title="Buka Sidebar"
     >
       <PanelLeftOpen size={18} />
-    </button>
+    </SidebarTrigger>
   );
 }
+
 
 export default function Home() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -52,7 +54,7 @@ export default function Home() {
   };
 
   return (
-    <>
+    <SidebarProvider defaultOpen>
       <AppSidebar
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
@@ -100,6 +102,6 @@ export default function Home() {
           )}
         </div>
       </main>
-    </>
+    </SidebarProvider>
   );
 }

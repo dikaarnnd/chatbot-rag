@@ -1,4 +1,4 @@
-"""Centralized configuration for Chatbot RAG backend (Fase 4).
+"""Centralized configuration for Chatbot RAG backend.
 
 Pakai pydantic-settings untuk validasi tipe otomatis + baca dari .env.
 Modul lain (ingestion/, retrieval/, generation/) TETAP punya default
@@ -18,17 +18,17 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # --- API Keys ---
-    gemini_api_key: str  # wajib -- app gagal start kalau tidak ada di .env
+    gemini_api_key: str 
 
     # --- Embedding ---
     embed_dim: int | None = None  # None = native 1024 (Qwen3-Embedding-0.6B)
 
-    # --- Chunking (masih Working Hypothesis di DECISIONS.md, belum final) ---
+    # --- Chunking ---
     chunk_size: int = 512
     chunk_overlap: int = 100
 
-    # --- Retrieval (Keputusan Final DECISIONS.md, hasil eksperimen top-k) ---
-    top_k: int = 9
+    # --- Retrieval ---
+    top_k: int = 8
     score_threshold: float | None = None
 
     # --- Generation ---
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     history_turns: int = 5
 
     # --- App ---
-    cors_origins: list[str] = ["http://localhost:3000"]  # Next.js dev server (Fase 5)
+    cors_origins: list[str] = ["http://localhost:3000"]
 
 
 @lru_cache

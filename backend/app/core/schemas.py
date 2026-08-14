@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Pydantic request/response schemas for Chatbot RAG API endpoints (Fase 4).
+"""Pydantic request/response schemas for Chatbot RAG API endpoints.
 
 Terpisah dari dataclass core (ingestion/pipeline.py IngestionResult,
 generation/pipeline.py QueryResult/SourceCitation) supaya modul core tetap
@@ -44,8 +44,8 @@ class ChatRequest(BaseModel):
     session_id: str = Field(..., description="ID ChatSession -- menentukan dokumen mana yang ditanya")
     question: str = Field(..., min_length=1, description="Pertanyaan user, tidak boleh kosong")
     top_k: int | None = Field(
-        default=None, ge=3, le=20,
-        description="Override jumlah chunk yang di-retrieve. Default: Settings (top_k=5).",
+        default=None, ge=8, le=20,
+        description="Override jumlah chunk yang di-retrieve.",
     )
 
 

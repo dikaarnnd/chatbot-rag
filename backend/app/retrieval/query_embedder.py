@@ -62,8 +62,7 @@ def embed_query(query: str, embed_dim: int | None = None) -> list[float]:
             yang dipakai saat ingest dokumen ke Qdrant.
 
     Returns:
-        Vector embedding (list[float]), sudah dinormalisasi (cocok Cosine
-        distance di Qdrant).
+        Vector embedding (list[float]), sudah dinormalisasi.
 
     Raises:
         ValueError: kalau query kosong/cuma whitespace.
@@ -77,7 +76,7 @@ def embed_query(query: str, embed_dim: int | None = None) -> list[float]:
     vector = model.encode(
         query,
         prompt_name=_QUERY_PROMPT_NAME,
-        normalize_embeddings=True,  # match embedder.py -- Qdrant Cosine distance
+        normalize_embeddings=True,  # match embedder.py -- Cosine distance
         convert_to_numpy=True,
     )
 

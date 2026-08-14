@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class IngestionResult:
-    """Ringkasan hasil satu run ingestion -- basis logging MLflow (Fase 6)."""
+    """Ringkasan hasil satu run ingestion"""
 
     document_id: str
     file_name: str
@@ -131,5 +131,3 @@ def _main() -> None:
 
 if __name__ == "__main__":
     _main()
-
-# run --> python -m app.ingestion.pipeline "..\data\raw\SINTECH Journal 2023 - Main2_ID.pdf"

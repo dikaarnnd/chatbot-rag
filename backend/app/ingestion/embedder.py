@@ -1,19 +1,3 @@
-"""Embedding utilities for Chatbot RAG ingestion pipeline.
-
-Wraps Qwen3-Embedding-0.6B via sentence-transformers directly (not the
-LlamaIndex HuggingFaceEmbedding wrapper -- lihat DECISIONS.md/chat log untuk
-alasan). CPU-only per project constraints (no GPU).
-
-PENTING (asimetri query vs document): Qwen3-Embedding instruction-tuned --
-kualitas retrieval terbaik kalau QUERY di-encode dengan instruction prefix
-("query"), sedangkan DOKUMEN/CHUNK di-encode TANPA instruction. Module ini
-hanya untuk sisi dokumen. Module retrieval (Fase 3) wajib pakai
-`prompt_name="query"` saat encode query -- jangan reuse config ini apa adanya.
-
-Embedding di-normalize (normalize_embeddings=True) dengan asumsi Qdrant
-collection dikonfigurasi pakai Cosine distance (lihat indexer.py).
-"""
-
 from __future__ import annotations
 
 import logging

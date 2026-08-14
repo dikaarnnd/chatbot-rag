@@ -1,7 +1,6 @@
 """Vector search utilities for Chatbot RAG retrieval pipeline.
 
-Top-k similarity search ke Qdrant, pakai query_points() (API modern
-qdrant-client >=1.10, menggantikan search() yang deprecated).
+Top-k similarity search ke pgvector
 """
 
 from __future__ import annotations
@@ -42,8 +41,7 @@ def search(
         query: Pertanyaan user.
         document_id: ID dokumen yang jadi konteks pencarian -- WAJIB, karena
             database sekarang bisa berisi banyak dokumen sekaligus.
-        top_k: Jumlah chunk yang di-retrieve. Default = Keputusan Final
-            DECISIONS.md (k=5).
+        top_k: Jumlah chunk yang di-retrieve..
         score_threshold: Kalau di-set, buang hasil dengan similarity di
             bawah nilai ini. Default None (nonaktif).
         embed_dim: Lihat query_embedder.embed_query() -- wajib sama dengan
@@ -96,5 +94,3 @@ def search(
     )
  
     return chunks
-
-# test -> python -c "from app.retrieval.search import search; r = search('berapa akurasi model MobileNetV2?', document_id='fc19bb36-13ec-4427-98c5-83fac81fde2d'); [print(f'{c.score:.3f} | hal.{c.page_label} | {c.text[:60]}') for c in r]"
