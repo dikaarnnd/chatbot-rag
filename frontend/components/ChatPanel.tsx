@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { getSessionMessages, streamChat, type ChatEvent, type SourceCitation } from "@/lib/api";
 import Form from "@/components/Form";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface ChatTurn {
   question: string;
@@ -47,6 +48,7 @@ export default function ChatPanel({ sessionId, disabled = false }: ChatPanelProp
   const [isBusy, setIsBusy] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const turnsLengthRef = useRef(0);
+  const { open, isMobile } = useSidebar();
 
   useEffect(() => {
     turnsLengthRef.current = turns.length;
@@ -187,8 +189,6 @@ export default function ChatPanel({ sessionId, disabled = false }: ChatPanelProp
   const onInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
   }, []);
- 
-  // ... (Pertahankan state dan logika fetching Anda yang sudah bagus)
   
   return (
     <div className="relative flex w-full max-w-3xl flex-col gap-4 pb-28">
@@ -213,14 +213,60 @@ export default function ChatPanel({ sessionId, disabled = false }: ChatPanelProp
             </div>
 
             <div className="px-4 py-4">
-               {/* ... (Pertahankan isi blok rendering teks & sources Anda) ... */}
+              {turn.error ? (
+                  <p className="text-sm text-(--color-danger)">{turn.error}</p>
+                ) : turn.isGenerating ? (
+                  <p className="flex items-center gap-2 text-sm text-(--color-ink-soft)">
+                    <span className="inline-flex gap-0.5">
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-(--color-accent) [animation-delay:-0.3s] motion-reduce:animate-none" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-(--color-accent) [animation-delay:-0.15s] motion-reduce:animate-none" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-(--color-accent) motion-reduce:animate-none" />
+                    </span>
+                    Sedang berpikir...
+                  </p>
+                ) : (
+                  <>
+                    <p className="whitespace-pre-wrap text-sm text-(--color-ink)">
+                      {turn.answer}
+                      {turn.isRevealing && (
+                        <span className="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-(--color-accent) align-middle motion-reduce:animate-none" />
+                      )}
+                    </p>
+  
+                    {turn.usedFallback && !turn.isRevealing && (
+                      <p className="mt-2 font-mono text-xs uppercase tracking-wide text-(--color-accent)">
+                        Tidak ditemukan di dokumen
+                      </p>
+                    )}
+  
+                    {/* {turn.sources.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2 border-t border-(--color-paper-line) pt-3">
+                        {turn.sources.map((s, j) => (
+                          <span
+                            key={j}
+                            className="rounded-sm border border-(--color-paper-line-strong) bg-(--color-paper) px-2 py-0.5 font-mono text-xs text-(--color-accent)"
+                            title={s.file_name ?? undefined}
+                          >
+                            hal. {s.page_label ?? "?"}
+                          </span>
+                        ))}
+                      </div>
+                    )} */}
+                  </>
+                )}
             </div>
           </div>
         ))}
       </div>
 
       {/* Form Input Sticky Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center bg-gradient-to-t from-(--color-background) to-transparent p-4 md:left-[var(--sidebar-width,0px)]">
+      <div 
+        className="fixed bottom-0 left-0 right-0 z-20 flex justify-center bg-linear-to-t from-(--color-background) to-transparent p-4 transition-all duration-250"
+        style={{
+          // Dinamis: 0px saat mobile atau tertutup, sebesar sidebar saat terbuka
+          left: isMobile ? "0px" : open ? "var(--sidebar-width, 16rem)" : "0px"
+        }}
+      >
         <div className="w-full max-w-3xl">
           <Form
             input={input}

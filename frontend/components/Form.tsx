@@ -1,6 +1,7 @@
 "use client";
 
 import type { ChangeEvent, FormEvent } from "react";
+import { Send, Loader } from 'lucide-react';
 
 interface FormProps {
   input: string;
@@ -35,9 +36,9 @@ export default function Form({
       <button
         type="submit"
         disabled={isBusy || disabled || !input.trim()}
-        className="shrink-0 rounded-xl bg-(--color-accent) px-4 py-2.5 text-sm font-medium text-white transition-opacity disabled:opacity-40"
+        className="shrink-0 rounded-xl bg-(--color-accent) px-4 py-2.5 text-sm font-medium text-black transition-opacity disabled:opacity-40 disabled:cursor-not-allowed hover:cursor-pointer"
       >
-        {isBusy ? "Mengirim..." : "Tanya"}
+        {isBusy ? <Loader className="animate-spin" size={20}/> : <Send size={20} />}
       </button>
     </form>
   );

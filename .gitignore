@@ -22,7 +22,7 @@ frontend/out/
 backend/app/eval
 backend/scripts
 backend/debug_search.py
-backend/app/ingestion/debug_chunking.py
+backend/app/**/debug_chunking.py
 
 # --- Sample PDF ---
 data/*.pdf
@@ -33,4 +33,5 @@ data/*.pdf
 .idea/
 
 # --- Other ---
+*.txt
 docs

@@ -47,8 +47,7 @@ def generate_answer(
 
     Args:
         user_message: Hasil dari generation/prompt.py build_user_message().
-        model: Model Gemini yang dipakai. Default gemini-3.6-flash -- lihat
-            DECISIONS.md untuk trade-off vs gemini-3.1-pro / flash-lite.
+        model: Model Gemini yang dipakai. Default gemini-3.6-flash
         max_output_tokens: Batas token output.
         system_prompt: Instruksi sistem (default dari generation/prompt.py).
 

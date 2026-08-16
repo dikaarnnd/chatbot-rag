@@ -37,10 +37,9 @@ psycopg2-binary
 google-genai
 
 # --- Evaluasi & experiment tracking ---
-ragas==0.4.3
-mlflow==2.19.0
 rapidfuzz
 tiktoken
 
 # --- Utilities ---
 python-dotenv==1.0.1
+rank-bm25

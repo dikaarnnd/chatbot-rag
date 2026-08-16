@@ -18,8 +18,7 @@ def get_embedder(embed_dim: int | None = None) -> SentenceTransformer:
     Args:
         embed_dim: Kalau di-set, truncate output embedding ke dimensi ini
             (Matryoshka truncation, model native = 1024). Default None =
-            pakai dimensi native penuh -- reduksi dimensi belum jadi
-            keputusan final, ditunda ke eksperimen optimasi storage Fase 6.
+            pakai dimensi native penuh
 
     Returns:
         SentenceTransformer instance, siap dipakai untuk embed dokumen.
@@ -63,7 +62,7 @@ def embed_nodes(
         texts,
         batch_size=batch_size,
         show_progress_bar=False,
-        normalize_embeddings=True,  # asumsi Qdrant collection pakai Cosine distance
+        normalize_embeddings=True,
         convert_to_numpy=True,
     )
 

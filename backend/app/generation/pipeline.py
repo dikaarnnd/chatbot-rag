@@ -20,7 +20,7 @@ from app.generation.gemini_client import (
     generate_answer_stream,
 )
 from app.generation.prompt import NO_CONTEXT_MESSAGE, build_user_message
-from app.retrieval.search import DEFAULT_TOP_K, search
+from app.retrieval.search import FINAL_TOP_K, search
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class QueryResult:
 def answer_question(
     question: str,
     document_id: str,
-    top_k: int = DEFAULT_TOP_K,
+    top_k: int = FINAL_TOP_K,
     score_threshold: float | None = None,
     model: str = DEFAULT_MODEL,
     embed_dim: int | None = None,
@@ -137,7 +137,7 @@ def answer_question_stream(
     question: str,
     document_id: str,
     history: list[dict] | None = None,
-    top_k: int = DEFAULT_TOP_K,
+    top_k: int = FINAL_TOP_K,
     score_threshold: float | None = None,
     model: str = DEFAULT_MODEL,
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS,
@@ -235,7 +235,7 @@ def _main() -> None:
     parser = argparse.ArgumentParser(description="Test query pipeline Chatbot RAG")
     parser.add_argument("document_id", type=str, help="ID dokumen (dari tabel Document)")
     parser.add_argument("question", type=str, help="Pertanyaan untuk diajukan")
-    parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K)
+    parser.add_argument("--top-k", type=int, default=FINAL_TOP_K)
     args = parser.parse_args()
 
     result = answer_question(args.question, document_id=args.document_id, top_k=args.top_k)
