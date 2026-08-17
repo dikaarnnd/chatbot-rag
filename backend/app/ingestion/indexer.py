@@ -3,10 +3,7 @@ from __future__ import annotations
 """Chunk + vector storage for Chatbot RAG ingestion pipeline (Supabase/pgvector).
 """
 
-
 import logging
-
-from llama_index.core.schema import BaseNode
 from sqlmodel import Session
 
 from app.core.db import Chunk, Document, engine
@@ -29,7 +26,7 @@ def create_document(file_name: str, pages_loaded: int, chunks_created: int) -> D
     return document
 
 
-def upsert_nodes(document_id: str, nodes: list[BaseNode]) -> int:
+def upsert_nodes(document_id: str, embedded_chunks: list[dict]) -> int:
     """Simpan nodes (chunk + embedding + metadata) sebagai baris Chunk.
 
     Args:
@@ -42,22 +39,18 @@ def upsert_nodes(document_id: str, nodes: list[BaseNode]) -> int:
     Raises:
         ValueError: kalau nodes kosong, atau ada node tanpa embedding.
     """
-    if not nodes:
+    """Simpan chunk + embedding ke database."""
+    if not embedded_chunks:
         raise ValueError("nodes kosong -- tidak ada yang bisa disimpan.")
 
     chunks: list[Chunk] = []
-    for node in nodes:
-        if node.embedding is None:
-            raise ValueError(
-                f"Node {node.node_id} belum punya embedding -- jalankan "
-                "embed_nodes() dulu sebelum upsert_nodes()."
-            )
+    for item in embedded_chunks:
         chunks.append(
             Chunk(
                 document_id=document_id,
-                text=node.get_content(),
-                page_label=node.metadata.get("page_label"),
-                embedding=node.embedding,
+                text=item["text"],
+                page_label=item["metadata"].get("page_label", "1"),
+                embedding=item["embedding"],
             )
         )
 

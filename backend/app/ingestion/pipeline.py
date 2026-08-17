@@ -3,11 +3,8 @@ from __future__ import annotations
 """End-to-end ingestion pipeline orchestrator for Chatbot RAG.
 
 Menggabungkan loader -> chunker -> embedder -> indexer jadi satu alur untuk
-1 PDF. Direvisi untuk Supabase: sekarang bikin Document baru dulu (dapat
-document_id), baru simpan Chunk-nya -- BUKAN reset collection global seperti
-versi Qdrant lama (lihat DECISIONS.md soal riwayat chat persisten).
+1 PDF.
 """
-
 
 import argparse
 import logging
@@ -82,7 +79,7 @@ def ingest_pdf(
         raise
 
     try:
-        vector_size = len(nodes[0].embedding)
+        vector_size = len(nodes[0]["embedding"])
         document = create_document(
             file_name=file_name,
             pages_loaded=len(documents),

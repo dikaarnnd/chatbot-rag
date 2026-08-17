@@ -14,7 +14,7 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "gemini-3.6-flash"
+DEFAULT_MODEL = "gemini-3.7-flash"
 DEFAULT_MAX_OUTPUT_TOKENS = 4096
 
 
@@ -47,7 +47,7 @@ def generate_answer(
 
     Args:
         user_message: Hasil dari generation/prompt.py build_user_message().
-        model: Model Gemini yang dipakai. Default gemini-3.6-flash
+        model: Model Gemini yang dipakai. Default gemini-3.7-flash
         max_output_tokens: Batas token output.
         system_prompt: Instruksi sistem (default dari generation/prompt.py).
 

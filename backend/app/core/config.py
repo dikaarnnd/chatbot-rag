@@ -24,15 +24,15 @@ class Settings(BaseSettings):
     embed_dim: int | None = None  # None = native 1024 (Qwen3-Embedding-0.6B)
 
     # --- Chunking ---
-    chunk_size: int = 512
-    chunk_overlap: int = 100
+    chunk_size: int = 2048
+    chunk_overlap: int = 400
 
     # --- Retrieval ---
-    top_k: int = 8
+    top_k: int = 3
     score_threshold: float | None = None
 
     # --- Generation ---
-    gemini_model: str = "gemini-3.6-flash"
+    gemini_model: str = "gemini-3.7-flash"
     max_output_tokens: int = 4096
     history_turns: int = 5
 

@@ -19,7 +19,8 @@ python-multipart==0.0.20
 pydantic-settings==2.7.1
 
 # --- Orchestration (RAG) ---
-llama-index-core==0.12.10 # Document, SentenceSplitter, BaseNode
+langchain-core
+langchain-text-splitters
 
 # --- PDF parsing ---
 pypdf

@@ -35,3 +35,4 @@ data/*.pdf
 # --- Other ---
 *.txt
 docs
+data

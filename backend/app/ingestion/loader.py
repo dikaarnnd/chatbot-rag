@@ -1,10 +1,4 @@
 """PDF loading utilities for Chatbot RAG ingestion pipeline.
-
-Loads a single PDF file, extracts per-page text, and wraps each page into a
-LlamaIndex Document with page-level metadata (needed for citation in Fase 3).
-Fails loudly if the PDF has no extractable text (e.g. scanned/image-only PDF),
-since OCR is out-of-scope for the MVP and a silently-empty index would violate
-the anti-hallucination principle in PRD.md.
 """
 
 from __future__ import annotations
@@ -15,7 +9,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
-from llama_index.core import Document
+from langchain_core.documents import Document
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +22,7 @@ class PDFLoadError(Exception):
 
 
 def load_pdf(file_path: str | Path) -> list[Document]:
-    """Load a PDF and return one LlamaIndex Document per page in Markdown.
+    """Load a PDF and return Document per page.
 
     Args:
         file_path: Path to the PDF file on disk.
@@ -72,7 +66,7 @@ def load_pdf(file_path: str | Path) -> list[Document]:
 
         documents.append(
             Document(
-                text=text,
+                page_content=text,
                 metadata={
                     "file_name": path.name,
                     "page_label": str(i),

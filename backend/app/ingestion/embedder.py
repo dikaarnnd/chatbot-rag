@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import logging
 
-from llama_index.core.schema import BaseNode
+from langchain_core.documents import Document
 from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
 MODEL_NAME = "Qwen/Qwen3-Embedding-0.6B"
-NATIVE_EMBED_DIM = 1024  # dimensi native model, dipakai indexer.py kalau embed_dim=None
-DEFAULT_BATCH_SIZE = 16  # kecil karena CPU-only
+NATIVE_EMBED_DIM = 1024  # dimensi native model
+DEFAULT_BATCH_SIZE = 16  # CPU-only
 
 
 def get_embedder(embed_dim: int | None = None) -> SentenceTransformer:
@@ -35,10 +35,10 @@ def get_embedder(embed_dim: int | None = None) -> SentenceTransformer:
 
 
 def embed_nodes(
-    nodes: list[BaseNode],
+    nodes: list[Document],
     embed_dim: int | None = None,
     batch_size: int = DEFAULT_BATCH_SIZE,
-) -> list[BaseNode]:
+) -> list[Document]:
     """Embed nodes (chunks) sebagai dokumen -- TANPA instruction prefix.
 
     Args:
@@ -56,7 +56,7 @@ def embed_nodes(
         raise ValueError("nodes kosong -- tidak ada yang bisa di-embed.")
 
     model = get_embedder(embed_dim=embed_dim)
-    texts = [node.get_content() for node in nodes]
+    texts = [node.page_content for node in nodes]
 
     vectors = model.encode(
         texts,
@@ -66,10 +66,15 @@ def embed_nodes(
         convert_to_numpy=True,
     )
 
+    embedded_chunks = []
     for node, vector in zip(nodes, vectors):
-        node.embedding = vector.tolist()
+        embedded_chunks.append({
+            "text": node.page_content,
+            "metadata": node.metadata,
+            "embedding": vector.tolist()
+        })
 
     dim = len(vectors[0]) if len(vectors) else 0
     logger.info("Embedded %d nodes (dim=%d)", len(nodes), dim)
 
-    return nodes
+    return embedded_chunks

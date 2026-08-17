@@ -4,8 +4,7 @@ Counterpart to ingestion/embedder.py, tapi untuk QUERY bukan dokumen.
 Qwen3-Embedding-0.6B instruction-tuned -- retrieval quality terbaik kalau
 query di-encode dengan instruction prefix bawaan model (prompt_name="query"),
 sedangkan dokumen/chunk (lihat ingestion/embedder.py) TIDAK pakai instruction.
-Model sudah punya prompt template "query" built-in di config HuggingFace-nya
--- tidak perlu menulis instruction text manual.
+Model sudah punya prompt template "query" built-in
 """
 
 from __future__ import annotations
