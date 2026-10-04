@@ -2,7 +2,7 @@
  * API client untuk backend Chatbot RAG (FastAPI).
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE_URL = "/api/backend";
 
 // --- Types ---
 
@@ -17,6 +17,13 @@ export interface IngestResponse {
   chunk_size: number;
   chunk_overlap: number;
   duration_seconds: number;
+}
+
+interface UploadJobStatus {
+  job_id: string;
+  status: "processing" | "completed" | "failed";
+  result: IngestResponse | null;
+  error: string | null;
 }
 
 export interface SourceCitation {
@@ -63,7 +70,10 @@ export interface MessageRecord {
 
 // --- API calls ---
 
-export async function uploadDocument(file: File): Promise<IngestResponse> {
+export async function uploadDocument(
+  file: File,
+  onProcessing?: () => void,
+): Promise<IngestResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -77,7 +87,27 @@ export async function uploadDocument(file: File): Promise<IngestResponse> {
     throw new Error(errorBody.detail ?? `HTTP ${response.status}`);
   }
 
-  return response.json() as Promise<IngestResponse>;
+  let job = (await response.json()) as UploadJobStatus;
+  onProcessing?.();
+
+  while (job.status === "processing") {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const statusResponse = await fetch(
+      `${API_BASE_URL}/documents/jobs/${job.job_id}`,
+    );
+    if (!statusResponse.ok) {
+      throw new Error(`Gagal memeriksa status ingestion (HTTP ${statusResponse.status})`);
+    }
+    job = (await statusResponse.json()) as UploadJobStatus;
+  }
+
+  if (job.status === "failed") {
+    throw new Error(job.error ?? "Gagal memproses dokumen.");
+  }
+  if (!job.result) {
+    throw new Error("Ingestion selesai tanpa mengembalikan hasil dokumen.");
+  }
+  return job.result;
 }
 
 export async function listSessions(): Promise<SessionSummary[]> {

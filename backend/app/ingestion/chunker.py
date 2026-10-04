@@ -1,21 +1,23 @@
 from __future__ import annotations
 
 import logging
+import re
 
-from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from llama_index.core import Document
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.schema import BaseNode
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CHUNK_SIZE = 2048   # ~512 token
-DEFAULT_CHUNK_OVERLAP = 400 # ~100 token
+DEFAULT_CHUNK_SIZE = 512
+DEFAULT_CHUNK_OVERLAP = 100
 _PAGE_SEPARATOR = " "
 
 def chunk_documents(
     documents: list[Document],
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
-) -> list[Document]:
+) -> list[BaseNode]:
     """Split per-page Documents into sentence-aware chunks (nodes).
 
     Semua halaman digabung dulu jadi 1 teks kontinu sebelum di-chunk, supaya
@@ -52,42 +54,36 @@ def chunk_documents(
         marker = f"\n[Halaman {page_label}] "
         page_boundaries.append((offset, page_label))
         text_parts.append(marker)
-        text_parts.append(doc.page_content)
-        offset += len(marker) + len(doc.page_content) + len(_PAGE_SEPARATOR)
+        text_parts.append(doc.text)
+        offset += len(marker) + len(doc.text) + len(_PAGE_SEPARATOR)
         text_parts.append(_PAGE_SEPARATOR)
  
     full_text = "".join(text_parts)
     combined_doc = Document(
-        page_content=full_text,
-        metadata={"file_name": file_name, "total_pages": total_pages},
+        text=full_text,
+        metadata={"file_name": file_name, "total_pages": total_pages}
     )
 
-    splitter = RecursiveCharacterTextSplitter(
+    splitter = SentenceSplitter(
         chunk_size=chunk_size, 
         chunk_overlap=chunk_overlap,
-        length_function=len,
-        separators=["(?<=[.?!]) ", " ", ""],
-        is_separator_regex=True
     )
     
     # Return List of Document
-    chunks = splitter.split_documents([combined_doc])
+    nodes = splitter.get_nodes_from_documents([combined_doc])
     
-    for chunk in chunks:
-        # Menyalin metadata dasar
-        chunk.metadata["file_name"] = file_name
-        chunk.metadata["total_pages"] = total_pages
-        # Ekstrak manual label halaman dari marker
-        import re
-        match = re.search(r"\[Halaman (.*?)\]", chunk.page_content)
+    for node in nodes:
+        # Di LlamaIndex, node mewarisi metadata dokumen induk secara otomatis
+        # Kita hanya perlu mengekstrak manual label halaman dari marker
+        match = re.search(r"\[Halaman (.*?)\]", node.text)
         if match:
-             chunk.metadata["page_label"] = match.group(1)
+             node.metadata["page_label"] = match.group(1)
         else:
-             chunk.metadata["page_label"] = "1"
+             node.metadata["page_label"] = "1"
 
     logger.info(
         "Chunked %d halaman -> %d chunks (chunk_size=%d, chunk_overlap=%d)",
-        len(documents), len(chunks), chunk_size, chunk_overlap,
+        len(documents), len(nodes), chunk_size, chunk_overlap,
     )
 
-    return chunks
+    return nodes

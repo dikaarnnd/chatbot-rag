@@ -62,7 +62,7 @@ export default function Home() {
         refreshKey={sidebarRefreshKey}
       />
 
-      <main className="relative flex min-h-screen w-full flex-col">
+      <main className="relative flex h-dvh min-h-0 w-full flex-col overflow-hidden">
         <DesktopOpenTrigger />
 
         <div className="sticky top-0 z-10 flex h-14 items-center border-b border-(--color-paper-line) bg-(--color-background) px-4 md:hidden">
@@ -77,16 +77,22 @@ export default function Home() {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col items-center px-4 py-8 md:px-6 md:py-12">
+        <div
+          className={
+            hasDocument
+              ? "grid h-[calc(100dvh-3.5rem)] shrink-0 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden px-3 sm:px-6 md:h-dvh"
+              : "flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-4 py-8 md:px-6 md:py-12"
+          }
+        >
           {!hasDocument ? (
             <div className="mx-auto mb-10 flex w-full max-w-2xl flex-col gap-6">
               <div className="text-center">
                 <h1 className="font-serif text-2xl text-(--color-ink) sm:text-3xl">
-                  Chatbot RAG
+                  Documind
                 </h1>
 
                 <p className="mt-2 text-xs text-(--color-ink-soft) sm:text-sm">
-                  Tanya-jawab grounded terhadap dokumen Modul Pembelajaran — jawaban selalu disertai halaman sumber.
+                  Ask Your Docs, Get Insights.
                 </p>
               </div>
 
@@ -95,6 +101,7 @@ export default function Home() {
           ) : (
             <div className="flex w-full flex-col items-center">
               <ChatPanel
+                key={activeSessionId ?? "new-chat"}
                 sessionId={activeSessionId}
                 disabled={!hasDocument}
               />

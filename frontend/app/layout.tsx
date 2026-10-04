@@ -19,7 +19,7 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "Chatbot RAG",
+  title: "Documind",
   description: "RAG-Based Chat Bot",
 };
 

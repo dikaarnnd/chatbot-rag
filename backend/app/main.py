@@ -6,9 +6,11 @@ import json
 import logging
 import shutil
 import tempfile
+import threading
+import uuid
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
@@ -23,6 +25,7 @@ from app.core.schemas import (
     SessionSummary,
     SourceCitationSchema,
     StatsResponse,
+    UploadJobStatus,
 )
 from app.generation.gemini_client import GenerationError
 from app.generation.pipeline import answer_question_stream
@@ -31,12 +34,15 @@ from app.ingestion.pipeline import ingest_pdf
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+_upload_jobs: dict[str, UploadJobStatus] = {}
+_upload_jobs_lock = threading.Lock()
 
 app = FastAPI(title="Chatbot RAG API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -48,12 +54,65 @@ def on_startup() -> None:
     init_db()
 
 
-@app.post("/documents", response_model=IngestResponse)
+def _process_document_upload(job_id: str, file_name: str, tmp_path: Path) -> None:
+    try:
+        result = ingest_pdf(
+            tmp_path,
+            chunk_size=settings.chunk_size,
+            chunk_overlap=settings.chunk_overlap,
+            embed_dim=settings.embed_dim,
+        )
+
+        session = ChatSession(document_id=result.document_id, title=file_name)
+        with Session(engine) as db:
+            db.add(session)
+            db.commit()
+            db.refresh(session)
+
+        response = IngestResponse(
+            document_id=result.document_id,
+            session_id=session.id,
+            file_name=file_name,
+            pages_loaded=result.pages_loaded,
+            chunks_created=result.chunks_created,
+            points_upserted=result.points_upserted,
+            embed_dim=result.embed_dim,
+            chunk_size=result.chunk_size,
+            chunk_overlap=result.chunk_overlap,
+            duration_seconds=result.duration_seconds,
+        )
+        with _upload_jobs_lock:
+            _upload_jobs[job_id] = UploadJobStatus(
+                job_id=job_id,
+                status="completed",
+                result=response,
+            )
+    except PDFLoadError as exc:
+        logger.warning("Upload ditolak untuk '%s': %s", file_name, exc)
+        with _upload_jobs_lock:
+            _upload_jobs[job_id] = UploadJobStatus(
+                job_id=job_id,
+                status="failed",
+                error=str(exc),
+            )
+    except Exception:
+        logger.exception("Ingestion gagal tak terduga untuk file '%s'", file_name)
+        with _upload_jobs_lock:
+            _upload_jobs[job_id] = UploadJobStatus(
+                job_id=job_id,
+                status="failed",
+                error="Gagal memproses dokumen.",
+            )
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+
+@app.post("/documents", response_model=UploadJobStatus, status_code=202)
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    db: Session = Depends(get_db_session),
-) -> IngestResponse:
-    """Upload 1 PDF, jalankan ingestion, dan otomatis buat 1 ChatSession baru.
+) -> UploadJobStatus:
+    """Terima PDF lalu jalankan ingestion di background.
 
     Beda dari versi sebelumnya: dokumen TIDAK menggantikan dokumen lama --
     semua dokumen yang pernah di-upload tetap tersimpan permanen di Supabase,
@@ -62,45 +121,34 @@ async def upload_document(
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="File harus berformat .pdf")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        shutil.copyfileobj(file.file, tmp)
-        tmp_path = Path(tmp.name)
-
     try:
-        result = ingest_pdf(
-            tmp_path,
-            chunk_size=settings.chunk_size,
-            chunk_overlap=settings.chunk_overlap,
-            embed_dim=settings.embed_dim,
-        )
-    except PDFLoadError as exc:
-        logger.warning("Upload ditolak untuk '%s': %s", file.filename, exc)
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = Path(tmp.name)
     except Exception as exc:
-        logger.exception("Ingestion gagal tak terduga untuk file '%s'", file.filename)
-        raise HTTPException(status_code=500, detail="Gagal memproses dokumen.") from exc
-    finally:
-        tmp_path.unlink(missing_ok=True)
+        logger.exception("Gagal menyimpan upload sementara untuk '%s'", file.filename)
+        raise HTTPException(status_code=500, detail="Gagal menerima file upload.") from exc
 
-    # Judul chat = nama file PDF (proxy untuk judul jurnal/skripsi -- kita
-    # tidak parse judul asli dari isi PDF, di luar scope saat ini).
-    session = ChatSession(document_id=result.document_id, title=file.filename)
-    db.add(session)
-    db.commit()
-    db.refresh(session)
+    job_id = str(uuid.uuid4())
+    with _upload_jobs_lock:
+        _upload_jobs[job_id] = UploadJobStatus(job_id=job_id, status="processing")
 
-    return IngestResponse(
-        document_id=result.document_id,
-        session_id=session.id,
-        file_name=file.filename,
-        pages_loaded=result.pages_loaded,
-        chunks_created=result.chunks_created,
-        points_upserted=result.points_upserted,
-        embed_dim=result.embed_dim,
-        chunk_size=result.chunk_size,
-        chunk_overlap=result.chunk_overlap,
-        duration_seconds=result.duration_seconds,
+    background_tasks.add_task(
+        _process_document_upload,
+        job_id,
+        file.filename,
+        tmp_path,
     )
+    return UploadJobStatus(job_id=job_id, status="processing")
+
+
+@app.get("/documents/jobs/{job_id}", response_model=UploadJobStatus)
+def get_upload_job_status(job_id: str) -> UploadJobStatus:
+    with _upload_jobs_lock:
+        job = _upload_jobs.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Status upload tidak ditemukan.")
+    return job
 
 
 @app.post("/chat")

@@ -15,6 +15,7 @@ Terpisah dari dataclass core dan dari SQLModel database models (core/db.py)
 """
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -34,6 +35,15 @@ class IngestResponse(BaseModel):
     chunk_size: int
     chunk_overlap: int
     duration_seconds: float = Field(..., description="Waktu proses ingestion end-to-end")
+
+
+class UploadJobStatus(BaseModel):
+    """Status pekerjaan upload yang berjalan di background."""
+
+    job_id: str
+    status: Literal["processing", "completed", "failed"]
+    result: IngestResponse | None = None
+    error: str | None = None
 
 
 # --- Chat / Query ---

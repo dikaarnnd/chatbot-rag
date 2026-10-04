@@ -9,7 +9,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
-from langchain_core.documents import Document
+from llama_index.core import Document
 
 logger = logging.getLogger(__name__)
 
@@ -53,27 +53,21 @@ def load_pdf(file_path: str | Path) -> list[Document]:
 
     for i, page in enumerate(reader.pages, start=1):
         raw_text = (page.extract_text() or "").strip()
-        # pypdf mempertahankan line-wrap asli PDF sebagai '\n' literal, bahkan
-        # di TENGAH kalimat (PDF tidak punya konsep paragraf, cuma posisi
-        # baris visual). Kolaps semua whitespace/newline jadi 1 spasi supaya
-        # tidak mengganggu sentence-boundary detection (chunker.py) dan
-        # fuzzy string matching (eval harness).
         text = re.sub(r"\s+", " ", raw_text).strip()
 
         if len(text) < MIN_CHARS_PER_PAGE:
             low_text_pages.append(i)
-            continue  # skip halaman kosong/near-empty
+            continue
 
-        documents.append(
-            Document(
-                page_content=text,
-                metadata={
-                    "file_name": path.name,
-                    "page_label": str(i),
-                    "total_pages": total_pages,
-                },
-            )
+        doc = Document(
+            text=text,
+            metadata={
+                "file_name": path.name,
+                "page_label": str(i),
+                "total_pages": total_pages,
+            }
         )
+        documents.append(doc)
 
     if len(low_text_pages) > total_pages * 0.5:
         raise PDFLoadError(

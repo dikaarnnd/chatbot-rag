@@ -65,7 +65,7 @@ export default function AppSidebar({
       <SidebarHeader className="px-3 pt-4">
         <div className="flex items-center justify-between pb-2">
           <span className="font-serif text-base font-semibold text-(--color-ink)">
-            Chatbot RAG
+            Documind
           </span>
           {/* Tombol Tutup Sidebar Universal */}
           <button

@@ -24,20 +24,20 @@ class Settings(BaseSettings):
     embed_dim: int | None = None  # None = native 1024 (Qwen3-Embedding-0.6B)
 
     # --- Chunking ---
-    chunk_size: int = 2048
-    chunk_overlap: int = 400
+    chunk_size: int = 512
+    chunk_overlap: int = 100
 
     # --- Retrieval ---
     top_k: int = 3
     score_threshold: float | None = None
 
     # --- Generation ---
-    gemini_model: str = "gemini-3.7-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
     max_output_tokens: int = 4096
     history_turns: int = 5
 
     # --- App ---
-    cors_origins: list[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = ["http://localhost:3000", "http://192.168.1.2:3000"]
 
 
 @lru_cache

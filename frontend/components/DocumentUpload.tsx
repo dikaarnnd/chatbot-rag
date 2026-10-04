@@ -17,6 +17,7 @@ export default function DocumentUpload({ onUploadSuccess }: DocumentUploadProps)
   const [result, setResult] = useState<IngestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState("Mengunggah PDF...");
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFile = useCallback(
@@ -29,9 +30,12 @@ export default function DocumentUpload({ onUploadSuccess }: DocumentUploadProps)
       setFileName(file.name);
       setState("uploading");
       setError(null);
+      setUploadStatus("Mengunggah PDF...");
 
       try {
-        const res = await uploadDocument(file);
+        const res = await uploadDocument(file, () => {
+          setUploadStatus("Memproses dokumen dan menyiapkan indeks...");
+        });
         setResult(res);
         setState("success");
         onUploadSuccess?.(res);
@@ -89,7 +93,9 @@ export default function DocumentUpload({ onUploadSuccess }: DocumentUploadProps)
           {state === "uploading" ? "Memproses dokumen..." : "Unggah dokumen"}
         </p>
         <p className="mt-1 text-sm text-(--color-ink-soft)">
-          Seret PDF ke sini, atau klik untuk pilih file
+          {state === "uploading"
+            ? uploadStatus
+            : "Seret PDF ke sini, atau klik untuk pilih file"}
         </p>
         {fileName && state !== "idle" && (
           <p className="mt-3 font-mono text-xs text-(--color-accent)">{fileName}</p>
